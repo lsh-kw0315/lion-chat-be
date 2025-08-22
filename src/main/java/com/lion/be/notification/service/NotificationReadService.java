@@ -28,6 +28,7 @@ public class NotificationReadService {
     private final UserRepository userRepository;
     private final ImageRepository imageRepository;
 
+    @ElapsedTime
     public Slice<NotificationResponse> fetchAllAlarm(Long currentUserId, Long lastId, int size){
         size = size > 0 && size <=30 ? size : 30;
         int limit = size + 1;

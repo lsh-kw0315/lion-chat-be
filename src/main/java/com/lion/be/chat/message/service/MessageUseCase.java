@@ -10,6 +10,7 @@ import com.lion.be.chat.room.domain.entity.ChatRoomUser;
 import com.lion.be.chat.room.repository.ChatRoomRepository;
 import com.lion.be.chat.room.repository.ChatRoomUserRepository;
 import com.lion.be.chat.room.service.ChatRoomPersistence;
+import com.lion.be.global.aop.ElapsedTime;
 import com.lion.be.global.exception.CustomException;
 import com.lion.be.global.exception.ErrorCode;
 import com.lion.be.image.domain.entity.Image;
@@ -47,6 +48,7 @@ public class MessageUseCase {
     private final ImageRepository imageRepository;
     private final MessageReadService messageReadService;
 
+    @ElapsedTime
     public void sendMessage(ChatMessageRequest request, Long senderId) {
         ChatRoom chatRoom = chatRoomRepository.findById(request.chatRoomId())
                 .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
@@ -65,6 +67,7 @@ public class MessageUseCase {
     }
 
     @Transactional
+    @ElapsedTime
     public void processReadAck(String messageId, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -75,6 +78,7 @@ public class MessageUseCase {
         chatRoomPersistence.updateChatRoomUserReadStatus(receiverChatRoomUser, true);
     }
 
+    @ElapsedTime
     public List<ChatMessageResponse> findMessagesByIdAndLastId(Long roomId, String lastId, Long userId) {
         Slice<ChatMessage> messages = messageReadService.getMessages(roomId, lastId);
         boolean isEnd = !messages.hasNext();

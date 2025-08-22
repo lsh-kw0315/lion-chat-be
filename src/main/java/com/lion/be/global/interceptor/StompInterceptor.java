@@ -1,9 +1,11 @@
 package com.lion.be.global.interceptor;
 
+import com.lion.be.auth.domain.UserPrincipal;
 import com.lion.be.global.util.JwtTokenProvider;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -14,12 +16,20 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class StompInterceptor implements ChannelInterceptor {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisTemplate<String, String> redisTemplate;
+    public final static String USER_ENDPOINT_KEY_PREFIX = "user_endpoint:";;
+    public final static String SUBID_ENDPOINT_KEY_PREFIX = "subid_endpoint:";
+
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -51,6 +61,39 @@ public class StompInterceptor implements ChannelInterceptor {
             } else {
                 // 토큰이 없는 경우
                 throw new MessageDeliveryException("MISSING_TOKEN");
+            }
+        }else if(StompCommand.SUBSCRIBE.equals(accessor.getCommand())){
+            log.info("Subscribe: {}", accessor);
+            UserPrincipal principal = null;
+            if(accessor.getUser() instanceof Authentication && ((Authentication) accessor.getUser()).getPrincipal() instanceof UserPrincipal) {
+                principal = (UserPrincipal) ((Authentication) accessor.getUser()).getPrincipal();
+            }
+
+            if(principal != null){
+                String key1 = USER_ENDPOINT_KEY_PREFIX + principal.getId();
+
+                String key2 = SUBID_ENDPOINT_KEY_PREFIX + accessor.getFirstNativeHeader("id");
+
+                redisTemplate.opsForSet().add(key1, accessor.getFirstNativeHeader("destination"));
+                redisTemplate.opsForValue().set(key2, accessor.getFirstNativeHeader("destination"));
+            }
+
+        }else if(StompCommand.UNSUBSCRIBE.equals(accessor.getCommand())){
+            log.info("UnSubscribe: {}", accessor);
+
+            UserPrincipal principal = null;
+            if(accessor.getUser() instanceof Authentication && ((Authentication) accessor.getUser()).getPrincipal() instanceof UserPrincipal) {
+                principal = (UserPrincipal) ((Authentication) accessor.getUser()).getPrincipal();
+            }
+
+            if(principal != null){
+                String key1 = USER_ENDPOINT_KEY_PREFIX + principal.getId();
+
+                String key2 = SUBID_ENDPOINT_KEY_PREFIX + accessor.getFirstNativeHeader("id");
+
+                String endPoint = redisTemplate.opsForValue().get(key2);
+                redisTemplate.delete(key2);
+                redisTemplate.opsForSet().remove(key1, endPoint);
             }
         }
         return message;

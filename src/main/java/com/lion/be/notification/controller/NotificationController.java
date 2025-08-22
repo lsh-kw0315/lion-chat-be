@@ -1,6 +1,7 @@
 package com.lion.be.notification.controller;
 
 import com.lion.be.auth.domain.UserPrincipal;
+import com.lion.be.global.aop.ElapsedTime;
 import com.lion.be.notification.domain.dto.NotificationResponse;
 import com.lion.be.notification.service.NotificationReadService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NotificationController {
     private final NotificationReadService notificationReadService;
 
+    @ElapsedTime
     @GetMapping("/api/notifications")
     public ResponseEntity<Slice<NotificationResponse>> getNotifications(
             @AuthenticationPrincipal UserPrincipal userPrincipal,

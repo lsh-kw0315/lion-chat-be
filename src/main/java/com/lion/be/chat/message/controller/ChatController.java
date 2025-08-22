@@ -3,6 +3,7 @@ package com.lion.be.chat.message.controller;
 import com.lion.be.auth.domain.UserPrincipal;
 import com.lion.be.chat.message.domain.dto.ChatMessageResponse;
 import com.lion.be.chat.message.service.MessageUseCase;
+import com.lion.be.global.aop.ElapsedTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,7 @@ public class ChatController {
      */
     @PreAuthorize("@chatRoomUserRepository.existsById_ChatRoomIdAndId_UserId(#roomId, #userPrincipal.id)")
     @GetMapping("/messages")
+    @ElapsedTime
     public ResponseEntity<List<ChatMessageResponse>> getMessageHistory(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam Long roomId,

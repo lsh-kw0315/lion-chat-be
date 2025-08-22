@@ -25,6 +25,13 @@
                             class="form-control"
                             placeholder="Enter your name"
                     />
+                    <label for="userId">Username:</label>
+                    <input
+                            type="text"
+                            id="userId"
+                            class="form-control"
+                            placeholder="Enter your Id"
+                    />
                     <button id="login-btn" class="btn btn-primary">Login</button>
                 </div>
             </div>
@@ -77,6 +84,7 @@
     let lastId = null;
     let subscription = null;
     let alarmSubscription = null;
+    let userId = 0;
     const connectBtn = document.getElementById("connect-btn");
     const loginBtn = document.getElementById("login-btn");
     const loginForm = document.getElementById("login-form");
@@ -87,6 +95,7 @@
     const messageInput = document.getElementById("message");
     const messagesArea = document.getElementById("messages");
     const usernameInput = document.getElementById("username");
+    const userIdInput = document.getElementById("userId");
     const opponentIdInput = document.getElementById("opponent");
     const loadBtn = document.getElementById("load");
     const backBtn = document.getElementById("back");
@@ -171,6 +180,7 @@
     async function login(event) {
         event.preventDefault();
         token = usernameInput.value.trim();
+        userId = userIdInput.value.trim();
         if (token) {
             configWebSocket();
 
@@ -310,8 +320,8 @@
         chats.reverse();
 
         chats.forEach((message) => {
-            if(message.senderName === chatroomOpponent){
-                opponentId = message.senderId;
+            if(message.nickname === chatroomOpponent){
+                opponentId = message.id;
             }
             displayMessage(message);
         });
@@ -336,7 +346,7 @@
 
         alarmUnsubscribe();
         alarmSubscription = stompClient.subscribe(
-            `/topic/alarm/${4}`,
+            `/topic/alarm/${userId}`,
             alarmReceived
         );
     }
@@ -385,14 +395,15 @@
         const message = JSON.parse(payload.body);
         displayMessage(message);
         console.log(message);
-        console.log(opponent);
-        if (message.senderId === opponentId) {
+        console.log(opponentId);
+        if (message.id === opponentId) {
+            console.log("떤냐");
             stompClient.publish({
                 destination: "/app/message.ack",
                 headers: { Authorization: `Bearer ${token}` },
                 body: JSON.stringify({
                     messageId: message.messageId,
-                    userId: message.senderId
+                    id: message.id
                 }),
             });
         }

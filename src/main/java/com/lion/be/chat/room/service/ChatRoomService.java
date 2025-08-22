@@ -7,6 +7,7 @@ import com.lion.be.chat.room.domain.entity.ChatRoom;
 import com.lion.be.chat.room.domain.entity.ChatRoomUser;
 import com.lion.be.chat.room.repository.ChatRoomRepository;
 import com.lion.be.chat.room.repository.ChatRoomUserRepository;
+import com.lion.be.global.aop.ElapsedTime;
 import com.lion.be.global.exception.CustomException;
 import com.lion.be.global.exception.ErrorCode;
 import com.lion.be.notification.domain.NotificationType;
@@ -40,6 +41,7 @@ public class ChatRoomService {
     private final MessageService messageService;
 
     @Transactional
+    @ElapsedTime
     public Long findOrCreateChatRoom(Long senderId, Long receiverId) {
 
         Optional<Long> chatRoomId = chatRoomUserRepository.findChatRoomIdByTwoUserIds(senderId, receiverId);
@@ -120,6 +122,7 @@ public class ChatRoomService {
      * @param userId
      * @return 채팅방 리스트
      */
+    @ElapsedTime
     public List<ChatRoomResponse> getChatRooms(Long userId) {
         return chatRoomRepository.findChatRoomListByUserId(userId);
     }

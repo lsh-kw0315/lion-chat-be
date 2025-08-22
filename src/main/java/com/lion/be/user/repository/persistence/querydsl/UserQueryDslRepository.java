@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.lion.be.global.aop.ElapsedTime;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
@@ -67,6 +68,7 @@ public class UserQueryDslRepository {
 	 * 동일 클러스터 내 사용자 조회
 	 * 어드민 유저는 제외
 	 */
+	@ElapsedTime
 	public List<User> findUsersByClusterExcluding(
 		Integer clusterId,
 		Long currentUserId,

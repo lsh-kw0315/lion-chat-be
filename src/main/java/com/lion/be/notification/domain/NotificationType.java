@@ -4,5 +4,6 @@ public enum NotificationType {
     POST_LIKE,
     COMMENT,
     CHATROOM,
-    PROFILE_LIKE
+    PROFILE_LIKE,
+    CHATTING
 }

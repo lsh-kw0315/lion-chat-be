@@ -6,6 +6,7 @@ import com.lion.be.chat.room.domain.dto.ChatRoomInitRequest;
 import com.lion.be.chat.room.domain.dto.ChatRoomInitResponse;
 import com.lion.be.chat.room.domain.dto.ChatRoomResponse;
 import com.lion.be.chat.room.service.ChatRoomService;
+import com.lion.be.global.aop.ElapsedTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,7 @@ public class ChatRoomController {
      * @return 생성한 채팅방 id
      */
     @PostMapping("/init")
+    @ElapsedTime
     public ResponseEntity<ChatRoomInitResponse> createChatRoom(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody ChatRoomInitRequest request
@@ -52,6 +54,7 @@ public class ChatRoomController {
      * @return 채팅방 목록 일괄조회
      */
     @GetMapping
+    @ElapsedTime
     public ResponseEntity<List<ChatRoomResponse>> getMyChatRoomList(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         return ResponseEntity.ok(chatRoomService.getChatRooms(userPrincipal.getId()));
     }
@@ -63,6 +66,7 @@ public class ChatRoomController {
      * @return
      */
     @GetMapping("/context")
+    @ElapsedTime
     public ResponseEntity<ChatRoomParticipantsInfoResponse> getChatRoomParticipants(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam Long roomId

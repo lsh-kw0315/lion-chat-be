@@ -1,5 +1,6 @@
 package com.lion.be.notification.repository;
 
+import com.lion.be.global.aop.ElapsedTime;
 import com.lion.be.notification.domain.entity.Notification;
 import com.lion.be.user.domain.entity.User;
 import org.springframework.data.domain.Pageable;
@@ -50,6 +51,7 @@ delete from Notification n where n.fromUserId = :currentUserId and n.toUserId = 
 """)
     List<User> fetchAllLikeUser(@Param("userId")Long userId);
 
+    @ElapsedTime
     @Query("""
     select n
     from Notification n
@@ -57,6 +59,7 @@ delete from Notification n where n.fromUserId = :currentUserId and n.toUserId = 
 """)
     List<Notification> fetchAllFirst(@Param("userId") Long userId, Pageable pageable);
 
+    @ElapsedTime
     @Query("""
     select n
     from Notification n

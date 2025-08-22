@@ -2,6 +2,7 @@ package com.lion.be.usercard.controller;
 
 import java.util.List;
 
+import com.lion.be.global.aop.ElapsedTime;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +49,7 @@ public class UserCardController {
 	}
 
 	@GetMapping("/cards/list")
+	@ElapsedTime
 	public ResponseEntity<List<UserCardResponse>> getCards(
 		@AuthenticationPrincipal UserPrincipal userPrincipal,
 		@RequestParam(defaultValue = "10") int size,

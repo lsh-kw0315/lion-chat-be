@@ -3,6 +3,7 @@ package com.lion.be.chat.room.repository;
 import com.lion.be.chat.room.domain.dto.ChatRoomResponse;
 import com.lion.be.chat.room.domain.entity.QChatRoom;
 import com.lion.be.chat.room.domain.entity.QChatRoomUser;
+import com.lion.be.global.aop.ElapsedTime;
 import com.lion.be.image.domain.entity.QImage;
 import com.lion.be.user.domain.entity.QUser;
 import com.lion.be.user.domain.entity.QUserPhoto;
@@ -19,6 +20,7 @@ public class ChatRoomQueryDslRepository {
 
     private final JPAQueryFactory queryFactory;
 
+    @ElapsedTime
     public List<ChatRoomResponse> findChatRoomResponsesByUserIdQueryDsl(Long userId) {
         QChatRoom chatRoom = QChatRoom.chatRoom;
         QChatRoomUser currentUserRoom = new QChatRoomUser("currentUserRoom");

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.lion.be.global.aop.ElapsedTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,7 @@ public class UserCardReadService {
 	private final UserCardFilterUtil userCardFilterUtil;
 	private final UserRepository userRepository;
 	private final UserLikesReadService userLikesReadService;
-
+	@ElapsedTime
 	public List<UserCardResponse> getCards(Long userId, int size, List<Long> excludeUserIds) {
 		List<Long> allExcludeUserIds = userViewHistoryService.getExcludeUserIds(userId, excludeUserIds);
 		List<User> recommendedUsers = userCardFilterUtil.getRecommendedUsers(userId, size, allExcludeUserIds);
