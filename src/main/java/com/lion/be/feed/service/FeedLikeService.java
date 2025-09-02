@@ -10,6 +10,7 @@ import com.lion.be.global.exception.ErrorCode;
 import com.lion.be.global.util.RedisKey;
 import com.lion.be.notification.domain.NotificationType;
 import com.lion.be.notification.domain.dto.NotificationEvent;
+import com.lion.be.notification.domain.dto.PostLikeEvent;
 import com.lion.be.notification.domain.entity.Notification;
 import com.lion.be.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class FeedLikeService {
 
             if(!writerId.equals(userId)) {
                 applicationEventPublisher.publishEvent(
-                        new NotificationEvent(userId, writerId, NotificationType.POST_LIKE, feedId)
+                        new PostLikeEvent(userId, writerId, NotificationType.POST_LIKE, feedId)
                 );
             }
         }
