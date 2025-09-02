@@ -63,17 +63,8 @@ public class ChatRoomService {
             chatRoom.addUser(user2ChatRoomUser);
             chatRoomRepository.save(chatRoom);
 
-            Notification notification = notificationRepository.save(
-                    new Notification(
-                            senderId,
-                            receiverId,
-                            chatRoom.getId(),
-                            NotificationType.CHATROOM
-                    )
-            );
-
             applicationEventPublisher.publishEvent(
-                    new NotificationEvent(notification.getId(), senderId, receiverId, NotificationType.CHATROOM, chatRoom.getId())
+                    new NotificationEvent(senderId, receiverId, NotificationType.CHATROOM, chatRoom.getId())
             );
 
             return ChatRoomInitResponse.toResponse(

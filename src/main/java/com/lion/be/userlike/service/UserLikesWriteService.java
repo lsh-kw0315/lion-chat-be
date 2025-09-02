@@ -36,14 +36,8 @@ public class UserLikesWriteService {
 			notificationRepository.deleteNotification(currentUserId, targetUserId);
 			return false;
 		} else {
-			Notification notification = notificationRepository.save(new Notification(
-					currentUserId,
-					targetUserId,
-					currentUserId,
-					NotificationType.PROFILE_LIKE
-			));
 			eventPublisher.publishEvent(
-					new NotificationEvent(notification.getId(), currentUserId, targetUserId, NotificationType.PROFILE_LIKE, currentUserId)
+					new NotificationEvent(currentUserId, targetUserId, NotificationType.PROFILE_LIKE, currentUserId)
 			);
 
 			return true;

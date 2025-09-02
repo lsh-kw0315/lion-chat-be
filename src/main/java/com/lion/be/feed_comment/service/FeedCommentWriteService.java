@@ -55,17 +55,9 @@ public class FeedCommentWriteService {
 
         Long feedWriterId = feed.getUser().getId();
         if(!feedWriterId.equals(userId)) {
-            Notification notification = notificationRepository.save(
-                    new Notification(
-                            userId,
-                            feedWriterId,
-                            feedId,
-                            NotificationType.COMMENT
-                    )
-            );
 
             applicationEventPublisher.publishEvent(
-                    new NotificationEvent(notification.getId(), userId, feedWriterId, NotificationType.COMMENT, feed.getId())
+                    new NotificationEvent(userId, feedWriterId, NotificationType.COMMENT, feed.getId())
             );
         }
 
