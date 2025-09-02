@@ -31,7 +31,6 @@ public class RedisConfig {
                 LettuceClientConfiguration.builder();
 
         if (redisProperties.getSsl().isEnabled()) {
-            // ✨✨✨ 이 부분을 usingSsl() 에서 useSsl() 로 수정했습니다 ✨✨✨
             lettuceClientConfigurationBuilder.useSsl();
             log.info("Redis SSL 연결이 활성화되었습니다.");
         }

@@ -55,10 +55,6 @@ public class UserCardController {
 		@RequestParam(defaultValue = "10") int size,
 		@RequestParam(required = false) List<Long> excludeUserIds
 	) {
-		log.info("사용자 {}가 카드 조회 요청 - size: {}, 제외할 사용자 수: {}",
-			userPrincipal.getId(), size,
-			excludeUserIds != null ? excludeUserIds.size() : 0);
-
 		List<UserCardResponse> cards = userCardReadService.getCards(
 			userPrincipal.getId(),
 			size,

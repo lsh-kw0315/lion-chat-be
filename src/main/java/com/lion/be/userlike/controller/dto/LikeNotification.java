@@ -8,8 +8,4 @@ public record LikeNotification(
 	String message,
 	LocalDateTime timestamp
 ) {
-	// 편의 생성자
-	public LikeNotification(Long fromUserId, String fromUserName, String message) {
-		this(fromUserId, fromUserName, message, LocalDateTime.now());
-	}
 }

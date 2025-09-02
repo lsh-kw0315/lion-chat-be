@@ -91,11 +91,11 @@ public class UserLikesSteps {
 
 	public static void 좋아요_목록_조회_성공을_검증한다(ExtractableResponse<Response> response) {
 		assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
-		assertThat(response.jsonPath().getList("$")).isNotNull();
+		assertThat(response.jsonPath().getList("content")).isNotNull();
 	}
 
 	public static void 좋아요한_사용자가_포함됨을_검증한다(ExtractableResponse<Response> response, List<Long> expectedUserIds) {
-		List<Long> actualUserIds = response.jsonPath().getList("$").stream()
+		List<Long> actualUserIds = response.jsonPath().getList("content").stream()
 			.map(card -> ((Number) ((Map<String, Object>) card).get("userId")).longValue())
 			.toList();
 
@@ -108,7 +108,7 @@ public class UserLikesSteps {
 	}
 
 	public static void 좋아요_목록의_카드_정보를_검증한다(ExtractableResponse<Response> response) {
-		List<Map<String, Object>> likedUsers = response.jsonPath().getList("$");
+		List<Map<String, Object>> likedUsers = response.jsonPath().getList("content");
 
 		if (!likedUsers.isEmpty()) {
 			Map<String, Object> firstUser = likedUsers.get(0);
@@ -126,7 +126,7 @@ public class UserLikesSteps {
 	}
 
 	public static void 사용자_카드_정보_완성도를_검증한다(ExtractableResponse<Response> response) {
-		List<Map<String, Object>> cards = response.jsonPath().getList("$");
+		List<Map<String, Object>> cards = response.jsonPath().getList("content");
 
 		for (Map<String, Object> card : cards) {
 			assertThat(card.get("userId")).isNotNull();

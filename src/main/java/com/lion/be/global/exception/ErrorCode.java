@@ -42,7 +42,14 @@ public enum ErrorCode {
     IMAGE_DELETE_ACCESS_DENIED(HttpStatus.FORBIDDEN,"이미지 소유권자 가 아닙니다." ),
     BANNED_USER_LOGIN(HttpStatus.UNAUTHORIZED,"밴된 유저입니다. "),
     TOO_MANY_REQUESTS_PER_SECONDS_EXCEPTION(HttpStatus.TOO_MANY_REQUESTS, "초당 API 요청 횟수를 초과했습니다."),
-    TOO_MANY_REQUESTS_PER_MINUTE_EXCEPTION(HttpStatus.TOO_MANY_REQUESTS, "분당 API 요청 횟수를 초과했습니다.");
+    TOO_MANY_REQUESTS_PER_MINUTE_EXCEPTION(HttpStatus.TOO_MANY_REQUESTS, "분당 API 요청 횟수를 초과했습니다."),
+
+    // ENUM MAPPING
+    GENDER_VALUE_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 성별 값입니다."),
+    POSITION_VALUE_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 포지션 값입니다."),
+    UNIVERSITY_VALUE_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 학교 값입니다."),
+    PREFERENCE_TYPE_VALUE_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 선호 타입 값입니다."),
+    MBTI_VALUE_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 MBTI 값입니다.");
 
     private final HttpStatus status;
     private final String message;

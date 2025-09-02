@@ -11,9 +11,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -28,17 +25,6 @@ public class MessageReadService {
             return chatMessageRepository.findByChatRoomId(roomId, pageable);
         } else {
             return chatMessageRepository.findMessagesByIdAndLastId(roomId, new ObjectId(lastId), pageable);
-        }
-    }
-
-    public void updateMessagesAsRead(Slice<ChatMessage> messages, Long userId) {
-        List<ObjectId> unreadMessageIds = messages.getContent().stream()
-                .filter(message -> !message.getSenderId().equals(userId))
-                .map(ChatMessage::getId)
-                .collect(Collectors.toList());
-
-        if (!unreadMessageIds.isEmpty()) {
-            chatMessageRepository.markMessagesAsRead(unreadMessageIds);
         }
     }
 }

@@ -44,9 +44,7 @@ public class JwtTokenProvider {
     }
 
     public String generateAccessToken(Authentication authentication) {
-        String accessToken = generateToken(authentication, accessTokenExpireTime);
-        log.info("============ AccessToken 발급중 ============= {}", accessToken);
-        return accessToken;
+        return generateToken(authentication, accessTokenExpireTime);
     }
 
     public String generateRefreshToken(Authentication authentication) {

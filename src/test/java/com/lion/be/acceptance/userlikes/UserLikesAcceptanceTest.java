@@ -121,8 +121,12 @@ class UserLikesAcceptanceTest extends AcceptanceTest {
 
 			// then
 			좋아요_목록_조회_성공을_검증한다(response);
-			List<Map<String, Object>> likedUsers = response.jsonPath().getList("$");
+			List<Map<String, Object>> likedUsers = response.jsonPath().getList("content");
 			assertThat(likedUsers).isEmpty();
+
+			// 페이징 정보도 검증
+			assertThat(response.jsonPath().getInt("totalElements")).isEqualTo(0);
+			assertThat(response.jsonPath().getBoolean("empty")).isTrue();
 		}
 
 		@DisplayName("좋아요 목록에서 사용자 정보가 올바르게 반환된다")

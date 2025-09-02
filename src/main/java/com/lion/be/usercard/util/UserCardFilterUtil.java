@@ -1,9 +1,6 @@
 package com.lion.be.usercard.util;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
@@ -21,8 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 사용자 카드 필터링 및 클러스터 기반 추천 시스템
- *
- * 기존의 O(n²) 전체 재클러스터링 방식을 O(1) 시간복잡도로 개선한 시스템
  *
  * 주요 개선사항:
  * - 신규 사용자 가입 시 전체 재클러스터링 → 사전 정의된 클러스터 맵으로 즉시 배정
@@ -82,26 +77,40 @@ public class UserCardFilterUtil {
 		User targetUser = userRepository.fetchById(userId)
 			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-		// 1단계: 동일 클러스터 기반 추천
-		List<User> clusterBasedUsers = new ArrayList<>(getClusterBasedRecommendations(targetUser, excludeUserIds, size));
+        int clusterSize = 7; // 클러스터 내 추천 사용자 수
+        int recentSize =3; // 최근 가입자 추천 사용자 수
 
-		log.debug("클러스터 {} 기반 추천 결과: {}명", targetUser.getClusterId(), clusterBasedUsers.size());
+		// 1단계: 동일 클러스터 기반 추천
+		List<User> clusterBasedUsers = new ArrayList<>(getClusterBasedRecommendations(targetUser, excludeUserIds, clusterSize));
+
+        // 최근 가입자 우선 추천
+        List<Long> extendedExcludeIds = new ArrayList<>(excludeUserIds != null ? excludeUserIds : List.of());
+        clusterBasedUsers.forEach(user -> extendedExcludeIds.add(user.getId()));
+
+        List<User> recentUsers = userRepository.fetchRandomUsersExcluding(
+                userId, recentSize, extendedExcludeIds);
+
+        List<User> allUsers = new ArrayList<>(clusterBasedUsers);
+        allUsers.addAll(recentUsers);
 
 		// 2단계: 부족한 경우 랜덤 사용자로 보완
-		if (clusterBasedUsers.size() < size) {
-			int remainingSize = size - clusterBasedUsers.size();
+		if (allUsers.size() < size) {
+            int remainingSize = size - allUsers.size();
 
-			List<Long> extendedExcludeIds = new ArrayList<>(excludeUserIds != null ? excludeUserIds : List.of());
-			clusterBasedUsers.forEach(user -> extendedExcludeIds.add(user.getId()));
+            List<Long> finalExcludeIds  = new ArrayList<>(excludeUserIds != null ? excludeUserIds : List.of());
+            allUsers.forEach(user -> finalExcludeIds.add(user.getId()));
 
-			List<User> randomUsers = userRepository.fetchRandomUsersExcluding(
-				userId, remainingSize, extendedExcludeIds);
-
-			log.debug("랜덤 보완 추천 결과: {}명", randomUsers.size());
-			clusterBasedUsers.addAll(randomUsers);
+            List<User> additionalUsers = userRepository.fetchRandomUsersExcluding(
+                    userId, remainingSize, finalExcludeIds);
+            allUsers.addAll(additionalUsers);
 		}
 
-		return clusterBasedUsers;
+        // 시간 기반 셔플 (10초 다른 순서)
+        long timeSeed = System.currentTimeMillis() / (10 * 1000);
+        Random random = new Random(timeSeed);
+        Collections.shuffle(allUsers, random);
+
+        return allUsers.stream().limit(size).collect(Collectors.toList());
 	}
 
 	/**
@@ -124,9 +133,10 @@ public class UserCardFilterUtil {
 			return new ArrayList<>();
 		}
 
+        int candidateSize = size * 3; // 후보군 3배수 조회 (30)
 		// 동일 클러스터 사용자 조회
 		List<User> sameClusterUsers = userRepository.fetchUsersByClusterExcluding(
-			targetClusterId, targetUser.getId(), excludeUserIds, size);
+			targetClusterId, targetUser.getId(), excludeUserIds, candidateSize);
 
 		if (sameClusterUsers.isEmpty()) {
 			return new ArrayList<>();
@@ -138,7 +148,7 @@ public class UserCardFilterUtil {
 			.sorted((a, b) -> Double.compare(b.similarity, a.similarity))
 			.limit(size)
 			.map(us -> us.user)
-			.toList();
+                .collect(Collectors.toList());
 	}
 
 	/**
@@ -205,33 +215,42 @@ public class UserCardFilterUtil {
 		User targetUser = userRepository.fetchById(userId)
 			.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-		// 1단계: 클러스터 기반 추천 (더 많이 가져와서 필터링 여유 확보)
-		List<User> clusterBasedUsers = getClusterBasedRecommendations(targetUser, excludeUserIds, size * 3);
+		int clusterSize = 2;
+		int recentSize = 8;
 
-		// 2단계: 포지션 필터링
-		List<User> filteredUsers = clusterBasedUsers.stream()
+		// 1단계: 클러스터 기반 추천
+		List<User> clusterBasedUsers = getClusterBasedRecommendations(targetUser, excludeUserIds, clusterSize * 3).stream()
 			.filter(user -> user.getPosition() == filterPosition)
-			.limit(size)
+			.limit(clusterSize)
 			.collect(Collectors.toCollection(ArrayList::new));
 
-		log.debug("클러스터 {} + 포지션 {} 필터링 결과: {}명",
-			targetUser.getClusterId(), filterPosition, filteredUsers.size());
+		List<Long> extendedExcludeIds = new ArrayList<>(excludeUserIds != null ? excludeUserIds : List.of());
+		clusterBasedUsers.forEach(user -> extendedExcludeIds.add(user.getId()));
 
-		// 3단계: 부족하면 해당 포지션의 랜덤 사용자로 보완
-		if (filteredUsers.size() < size) {
-			int remainingSize = size - filteredUsers.size();
+		List<User> recentUsers = userRepository.fetchRandomUsersByPositionExcluding(
+			userId, filterPosition, recentSize, extendedExcludeIds);
 
-			List<Long> extendedExcludeIds = new ArrayList<>(excludeUserIds != null ? excludeUserIds : List.of());
-			filteredUsers.forEach(user -> extendedExcludeIds.add(user.getId()));
+		List<User> allUsers = new ArrayList<>(clusterBasedUsers);
+		allUsers.addAll(recentUsers);
 
-			List<User> randomUsersByPosition = userRepository.fetchRandomUsersByPositionExcluding(
-				userId, filterPosition, remainingSize, extendedExcludeIds);
+		// 3단계: 부족하면 해당 Position의 랜덤 사용자로 보완
+		if (allUsers.size() < size) {
+			int remainingSize = size - allUsers.size();
 
-			log.debug("포지션 {} 랜덤 보완 결과: {}명", filterPosition, randomUsersByPosition.size());
-			filteredUsers.addAll(randomUsersByPosition);
+			List<Long> finalExcludeIds = new ArrayList<>(excludeUserIds != null ? excludeUserIds : List.of());
+			allUsers.forEach(user -> finalExcludeIds.add(user.getId()));
+
+			List<User> additionalUsers = userRepository.fetchRandomUsersByPositionExcluding(
+				userId, filterPosition, remainingSize, finalExcludeIds);
+			allUsers.addAll(additionalUsers);
 		}
 
-		return filteredUsers;
+		// 4단계: 시간 기반 셔플
+		long timeSeed = System.currentTimeMillis() / (10 * 1000);
+		Random random = new Random(timeSeed);
+		Collections.shuffle(allUsers, random);
+
+		return allUsers.stream().limit(size).collect(Collectors.toList());
 	}
 
 	/**
@@ -240,10 +259,7 @@ public class UserCardFilterUtil {
 	private record UserSimilarity(User user, double similarity) {}
 
 	/**
-	 * 신규 사용자 클러스터 즉시 배정 (핵심 개선 메서드)
-	 *
-	 * 기존: O(n²) 전체 재클러스터링
-	 * 개선: O(1) HashMap 조회로 즉시 배정
+	 * 신규 사용자 클러스터 즉시 배정
 	 *
 	 * @param newUser 신규 사용자
 	 * @return 배정된 클러스터 ID
@@ -258,9 +274,6 @@ public class UserCardFilterUtil {
 				return 0;
 			}
 
-			log.info("신규 사용자 ID: {} → 클러스터 {} 즉시 배정 ({})",
-				newUser.getId(), clusterId, clusterKey);
-
 			return clusterId;
 
 		} catch (Exception e) {
@@ -270,7 +283,7 @@ public class UserCardFilterUtil {
 	}
 
 	/**
-	 * 벡터 기반 클러스터 맵 생성 (AI 포지션 추가로 10차원으로 확장)
+	 * 벡터 기반 클러스터 맵 생성
 	 *
 	 * 동작 과정:
 	 * 1. 모든 MBTI × Position 조합(96가지)의 10차원 벡터 계산
@@ -281,24 +294,23 @@ public class UserCardFilterUtil {
 	 */
 	private static Map<String, Integer> createVectorBasedClusterMap() {
 		Map<String, Integer> clusterMap = new HashMap<>();
-		UserVectorizer vectorizer = new UserVectorizer(); // 임시 인스턴스
+		UserVectorizer vectorizer = new UserVectorizer();
 
-		// 1단계: 모든 조합의 10차원 벡터 계산 (AI 포지션 추가로 차원 확장)
+		// 1단계: 모든 조합의 10차원 벡터 계산
 		Map<String, double[]> vectorMap = new HashMap<>();
 		for (Mbti mbti : Mbti.values()) {
 			for (Position position : Position.values()) {
 				String key = mbti.name() + "_" + position.name();
 
-				// UserVectorizer의 기존 벡터화 로직 활용 (10차원으로 확장)
-				double[] vector = new double[10]; // 9차원 → 10차원
+				double[] vector = new double[10]; // 10차원
 
 				// MBTI 4차원 추가
 				double[] mbtiBinary = vectorizer.getMbtiBinary(mbti);
 				System.arraycopy(mbtiBinary, 0, vector, 0, 4);
 
-				// Position 6차원 추가 (AI 포지션 추가)
+				// Position 6차원 추가
 				double[] positionVector = vectorizer.getPositionVector(position);
-				System.arraycopy(positionVector, 0, vector, 4, 6); // 5 → 6으로 변경
+				System.arraycopy(positionVector, 0, vector, 4, 6);
 
 				vectorMap.put(key, vector);
 			}
@@ -348,7 +360,7 @@ public class UserCardFilterUtil {
 	}
 
 	/**
-	 * 클러스터 중심점 정의 (AI 포지션 추가로 10차원으로 확장)
+	 * 클러스터 중심점 정의
 	 *
 	 * 10차원 벡터 구조: [E/I, S/N, T/F, J/P, BACKEND, FRONTEND, UX_UI, PM, FULLSTACK, AI]
 	 *

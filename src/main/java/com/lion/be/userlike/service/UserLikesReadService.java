@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Set;
 
 import com.lion.be.notification.repository.NotificationRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,14 +39,13 @@ public class UserLikesReadService {
 	 * @param userPrincipal 로그인한 사용자
 	 * @return 좋아요 누른 사용자들의 카드 정보 목록
 	 */
-	public List<UserCardResponse> getUsersWhoLiked(UserPrincipal userPrincipal) {
+	public Page<UserCardResponse> getUsersWhoLiked(UserPrincipal userPrincipal, Pageable pageable) {
 		Long userId = userPrincipal.getId();
 
 		// userLikes 테이블에서 fromUserId로 조회
-		List<User> likedUsers = notificationRepository.fetchAllLikeUser(userId);
+		Page<User> likedUsers = notificationRepository.fetchAllLikeUser(userId, pageable);
 
-		return likedUsers.stream()
-			.map(user -> UserCardResponse.from(user, true))
-			.toList();
+		return likedUsers
+			.map(user -> UserCardResponse.from(user, true));
 	}
 }

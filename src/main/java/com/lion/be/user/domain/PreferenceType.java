@@ -4,6 +4,8 @@ import java.util.Arrays;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.lion.be.global.exception.CustomException;
+import com.lion.be.global.exception.ErrorCode;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,7 @@ public enum PreferenceType {
 	@JsonCreator
 	public static PreferenceType fromValue(String value) {
 		if (value == null || value.trim().isEmpty()) {
-			throw new IllegalArgumentException("PreferenceType value cannot be null or empty");
+			throw new CustomException(ErrorCode.PREFERENCE_TYPE_VALUE_INVALID);
 		}
 
 		// 한국어 이름으로 매칭
@@ -33,7 +35,7 @@ public enum PreferenceType {
 				try {
 					return valueOf(value.toUpperCase());
 				} catch (IllegalArgumentException e) {
-					throw new IllegalArgumentException("Invalid preference type: " + value);
+					throw new CustomException(ErrorCode.PREFERENCE_TYPE_VALUE_INVALID, e);
 				}
 			});
 	}

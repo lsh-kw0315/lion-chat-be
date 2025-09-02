@@ -36,7 +36,15 @@ public class NotificationListener {
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void processMessage(NotificationEvent event){
-        Notification notification = notificationRepository.findById(event.id()).orElseThrow(() -> new RuntimeException("적절한 오류"));
+        Notification notification = notificationRepository.save(
+                new Notification(
+                        event.fromUserId(),
+                        event.toUserId(),
+                        event.targetId(),
+                        event.type()
+                )
+        );
+
         User receiver = userReadService.fetchById(event.toUserId());
         User sender = userRepository.fetchByIdWithPhotos(event.fromUserId()).orElseThrow(
                 ()->new CustomException(ErrorCode.USER_NOT_FOUND)

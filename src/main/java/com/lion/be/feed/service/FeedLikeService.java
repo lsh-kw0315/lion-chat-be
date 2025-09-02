@@ -40,17 +40,8 @@ public class FeedLikeService {
             redisTemplate.opsForSet().add(RedisKey.USER_LIKED_FEED_SET_PREFIX + userIdStr, String.valueOf(feedId));
 
             if(!writerId.equals(userId)) {
-                Notification notification = notificationRepository.save(
-                        new Notification(
-                                userId,
-                                writerId,
-                                feedId,
-                                NotificationType.POST_LIKE
-                        )
-                );
-
                 applicationEventPublisher.publishEvent(
-                        new NotificationEvent(notification.getId(), userId, writerId, NotificationType.POST_LIKE, feedId)
+                        new NotificationEvent(userId, writerId, NotificationType.POST_LIKE, feedId)
                 );
             }
         }

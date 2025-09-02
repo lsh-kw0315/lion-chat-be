@@ -3,6 +3,9 @@ package com.lion.be.user.domain;
 import java.util.Arrays;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.lion.be.global.exception.CustomException;
+import com.lion.be.global.exception.ErrorCode;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -37,7 +40,7 @@ public enum Mbti {
 	@JsonCreator
 	public static Mbti fromValue(String value) {
 		if (value == null || value.trim().isEmpty()) {
-			throw new IllegalArgumentException("MBTI value cannot be null or empty");
+			throw new CustomException(ErrorCode.MBTI_VALUE_INVALID);
 		}
 
 		// 한국어 이름으로 매칭 (MBTI는 영어와 한국어가 같음)
@@ -49,7 +52,7 @@ public enum Mbti {
 				try {
 					return valueOf(value.toUpperCase());
 				} catch (IllegalArgumentException e) {
-					throw new IllegalArgumentException("Invalid MBTI: " + value);
+					throw new CustomException(ErrorCode.MBTI_VALUE_INVALID, e);
 				}
 			});
 	}

@@ -146,6 +146,66 @@ class UserCardAcceptanceTest extends AcceptanceTest {
 			카드_리스트_조회_성공을_검증한다(response);
 			사용자_정보_형식을_검증한다(response);
 		}
+
+        @DisplayName("7:3 비율 추천 시스템이 정상 작동한다")
+        @Test
+        void when_user_requests_cards_then_uses_7to3_ratio() {
+            api_문서_타이틀("seven_to_three_ratio_recommendation", spec);
+
+            // given
+            String accessToken = 김프론트_로그인();
+
+            // when - 10개 조회 (클러스터 7 + 최신 3)
+            ExtractableResponse<Response> response = 카드리스트를_조회한다(spec, accessToken, 10);
+
+            // then
+            카드_리스트_조회_성공을_검증한다(response);
+            칠대삼_비율_추천을_검증한다(response, 10);
+            최신_가입자_포함을_검증한다(response);
+        }
+
+        @DisplayName("시간 기반 셔플로 매번 다른 순서로 추천된다")
+        @Test
+        void when_user_requests_cards_multiple_times_then_different_order_by_time() throws InterruptedException {
+            api_문서_타이틀("time_based_shuffle", spec);
+
+            // given
+            String accessToken = 김프론트_로그인();
+
+            // when - 같은 조건으로 두 번 조회
+            ExtractableResponse<Response> response1 = 카드리스트를_조회한다(spec, accessToken, 10);
+
+            // 11초 대기 (10초 구간 넘어가기 위해)
+            Thread.sleep(11000);
+
+            ExtractableResponse<Response> response2 = 카드리스트를_조회한다(spec, accessToken, 10);
+
+            Thread.sleep(11000);
+            ExtractableResponse<Response> response3 = 카드리스트를_조회한다(spec, accessToken, 10);
+            // then
+            카드_리스트_조회_성공을_검증한다(response1);
+            카드_리스트_조회_성공을_검증한다(response2);
+            카드_리스트_조회_성공을_검증한다(response3);
+            시간_기반_셔플을_검증한다(response1, response2, response3);
+        }
+
+        // 기존 테스트 수정
+        @DisplayName("클러스터 기반 + 최신 가입자 혼합 추천이 작동한다")
+        @Test
+        void when_user_requests_cards_then_gets_cluster_plus_recent_users() {
+            api_문서_타이틀("mixed_recommendation", spec);
+
+            // given
+            String accessToken = 김프론트_로그인();
+
+            // when
+            ExtractableResponse<Response> response = 카드리스트를_조회한다(spec, accessToken, 10);
+
+            // then
+            카드_리스트_조회_성공을_검증한다(response);
+            칠대삼_비율_추천을_검증한다(response, 10);
+            혼합_추천을_검증한다(response); // 다양성 검증
+        }
 	}
 
 	@Nested

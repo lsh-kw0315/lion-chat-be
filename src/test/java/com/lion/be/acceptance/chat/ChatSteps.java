@@ -1,17 +1,17 @@
 package com.lion.be.acceptance.chat;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.lion.be.chat.message.domain.dto.ChatMessageResponse;
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ChatSteps {
 

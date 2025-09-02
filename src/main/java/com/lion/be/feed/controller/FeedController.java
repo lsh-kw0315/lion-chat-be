@@ -96,7 +96,6 @@ public class FeedController {
             @RequestParam(value = "size", required = false) Integer size,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
         Long currentUserId = userPrincipal.getId();
-        System.out.println("currentUserId = " + currentUserId);
         if (lastId != null && lastId > 0) {
             return ResponseEntity.ok(feedReadService.getMyFeedsAfter(currentUserId, lastId, size));
         }

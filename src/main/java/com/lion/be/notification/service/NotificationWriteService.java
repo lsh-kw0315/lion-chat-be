@@ -36,8 +36,6 @@ public class NotificationWriteService {
 				"/topic/",
 				notification
 			);
-
-			log.info("좋아요 알림 전송 성공: userId={}", userId);
 		} catch (Exception e) {
 			log.error("좋아요 알림 전송 실패: userId={}", userId, e);
 		}

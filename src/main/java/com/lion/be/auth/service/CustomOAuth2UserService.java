@@ -64,7 +64,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 				throw new CustomException(ErrorCode.BANNED_USER_LOGIN);
 			}
 
-			log.info("{} 유저 인식 완료.", attributes.getName());
 		} catch (CustomException e) {
 			throw e;
 		} catch (RuntimeException e) {

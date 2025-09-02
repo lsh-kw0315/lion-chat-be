@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Service
@@ -16,9 +17,18 @@ public class UserViewHistoryService {
 	private final RedisTemplate<String, Object> redisTemplate;
 	// Redis key prefix
 	private static final String VIEW_HISTORY_KEY_PREFIX = "user:view_history:";
-	//Todo
-	// TTL: 10분으로 바꿔야함 개발중에는 2초로 정의
-	private static final Duration TTL = Duration.ofSeconds(2);
+
+	/**
+	 * 현재는 2분 고정
+	 * 주석 해제 하여 조회된 유저별 시간들 다르게 지정할수있음
+	 * @return TTL적용 시간
+	 */
+	private Duration getTTL(){
+		// int randomTimes = ThreadLocalRandom.current().nextInt(3, 8); // 3-7분 (숫자 조정으로 수정할수있음)
+		 int randomTimes = ThreadLocalRandom.current().nextInt(3, 7); // 20 - 40초
+
+		return Duration.ofSeconds(randomTimes);
+	}
 
 	/**
 	 * 사용자가 본 카드들을 기록합니다. (10분간 유지)
@@ -40,12 +50,9 @@ public class UserViewHistoryService {
 
 		redisTemplate.opsForSet().add(key, (Object[]) userIdStrings);
 
-		// TTL 설정 (10분)
-		redisTemplate.expire(key, TTL);
+		//TTL 카드별 렌덤 TTL
+		redisTemplate.expire(key, getTTL());
 
-		if (log.isDebugEnabled()) {
-			log.debug("사용자 {}가 본 카드들 기록: {}개", userId, viewedUserIds.size());
-		}
 	}
 
 	/**
@@ -88,10 +95,6 @@ public class UserViewHistoryService {
 
 		// 자기 자신도 제외
 		excludeSet.add(userId);
-
-		if (log.isTraceEnabled()) {
-			log.trace("사용자 {}의 제외 대상: {}명", userId, excludeSet.size());
-		}
 
 		return new ArrayList<>(excludeSet);
 	}

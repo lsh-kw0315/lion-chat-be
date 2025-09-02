@@ -3,6 +3,7 @@ package com.lion.be.notification.repository;
 import com.lion.be.global.aop.ElapsedTime;
 import com.lion.be.notification.domain.entity.Notification;
 import com.lion.be.user.domain.entity.User;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -40,16 +41,15 @@ delete from Notification n where n.fromUserId = :currentUserId and n.toUserId = 
 """)
     void deleteNotification(@Param("currentUserId")Long currentUserId, @Param("targetUserId")Long targetUserId);
 
-    @Query("""
-        SELECT u FROM User u
-        LEFT JOIN FETCH u.userPhotos up
-        WHERE u.id IN (
-            SELECT n.toUserId FROM Notification n
-            WHERE n.fromUserId = :userId and n.type = 'PROFILE_LIKE'
-        )
-        ORDER BY u.id, up.orderIndex
+	@Query("""
+    SELECT DISTINCT u FROM User u
+    WHERE u.id IN (
+        SELECT n.toUserId FROM Notification n
+        WHERE n.fromUserId = :userId and n.type = 'PROFILE_LIKE'
+    )
+    ORDER BY u.id
 """)
-    List<User> fetchAllLikeUser(@Param("userId")Long userId);
+	Page<User> fetchAllLikeUser(@Param("userId") Long userId, Pageable pageable);
 
     @ElapsedTime
     @Query("""

@@ -15,13 +15,13 @@ import com.lion.be.user.domain.Position;
  * 사용자 벡터화 및 MBTI 호환성 계산 컴포넌트
  *
  * 주요 기능:
- * 1. User 객체를 9차원 수치 벡터로 변환 (클러스터링 및 유사도 계산용)
+ * 1. User 객체를 10차원 수치 벡터로 변환 (클러스터링 및 유사도 계산용)
  * 2. MBTI 기반 사용자 간 호환성 점수 계산
  * 3. Position 간 유사도 벡터 제공
  *
  * 벡터 구조:
  * - MBTI 4차원: [E/I, S/N, T/F, J/P] (이진 값: 0 또는 1)
- * - Position 5차원: [BACKEND, FRONTEND, UX_UI, PM, FULLSTACK] (유사도 점수: 0.0~1.0)
+ * - Position 6차원: [BACKEND, FRONTEND, UX_UI, PM, FULLSTACK, AI] (유사도 점수: 0.0~1.0)
  *
  * 사용처:
  * - UserCardFilterUtil의 클러스터링 로직
@@ -37,7 +37,7 @@ public class UserVectorizer {
 	private static final Map<Mbti, Map<String, List<Mbti>>> COMPATIBILITY_MAP = createCompatibilityMap();
 
 	/**
-	 * User 객체를 10차원 벡터로 변환 (AI 포지션 추가로 차원 확장)
+	 * User 객체를 10차원 벡터로 변환
 	 *
 	 * 벡터 구조: [E/I, S/N, T/F, J/P, BACKEND, FRONTEND, UX_UI, PM, FULLSTACK, AI]
 	 *

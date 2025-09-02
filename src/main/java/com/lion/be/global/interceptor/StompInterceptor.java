@@ -37,25 +37,20 @@ public class StompInterceptor implements ChannelInterceptor {
 
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String jwtToken = accessor.getFirstNativeHeader("Authorization");
-            log.info("CONNECT - Authorization Header: {}", jwtToken);
 
             if (jwtToken != null && jwtToken.startsWith("Bearer ")) {
                 String token = jwtToken.substring(7);
                 try {
-                    // <<< 중요!!! 토큰 유효성 검사에서 발생하는 예외를 처리합니다.
+                    // 토큰 유효성 검사에서 발생하는 예외를 처리합니다.
                     if (jwtTokenProvider.validateToken(token)) {
                         Authentication authentication = jwtTokenProvider.getAuthentication(token);
                         accessor.setUser(authentication);
-                        log.info("User '{}' connected. Session ID: {}", authentication.getName(),
-                                accessor.getSessionId());
                     }
                 } catch (ExpiredJwtException e) {
-                    // <<< 중요!!! 토큰 만료 시, 클라이언트가 식별할 수 있는 에러 메시지와 함께 예외를 던집니다.
-                    log.info("Expired JWT Token: {}", e.getMessage());
+                    // 토큰 만료 시, 클라이언트가 식별할 수 있는 에러 메시지와 함께 예외를 던집니다.
                     throw new MessageDeliveryException("JWT_EXPIRED");
                 } catch (Exception e) {
-                    // <<< 중요!!! 그 외 다른 JWT 관련 예외 처리
-                    log.error("Invalid JWT Token: {}", e.getMessage());
+                    // 그 외 다른 JWT 관련 예외 처리
                     throw new MessageDeliveryException("INVALID_TOKEN");
                 }
             } else {
