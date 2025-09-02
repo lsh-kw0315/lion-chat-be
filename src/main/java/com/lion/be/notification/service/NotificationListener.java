@@ -34,7 +34,6 @@ public class NotificationListener {
     private final SimpMessagingTemplate messagingTemplate;
 
     @EventListener
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void processMessage(NotificationEvent event){
         Notification notification = notificationRepository.save(
                 new Notification(

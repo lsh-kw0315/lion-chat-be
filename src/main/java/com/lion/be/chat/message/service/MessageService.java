@@ -43,19 +43,12 @@ public class MessageService {
         Long receiverId =receiverChatRoomUser.getUser().getId();
 
         if(!redisTemplate.opsForSet().members(StompInterceptor.USER_ENDPOINT_KEY_PREFIX+receiverId.toString()).contains("/topic/chatroom/"+chatRoom.getId())){
-            Notification notification = notificationWriteService.save(
-                    chatRoomSender.getUser().getId(),
-                    receiverId,
-                    NotificationType.CHATTING,
-                    chatRoom.getId()
-            );
             applicationEventPublisher.publishEvent(
                     new NotificationEvent(
-                            notification.getId(),
-                            notification.getFromUserId(),
-                            notification.getToUserId(),
-                            notification.getType(),
-                            notification.getTargetId()
+                            chatRoomSender.getUser().getId(),
+                            receiverId,
+                            NotificationType.CHATTING,
+                            chatRoom.getId()
                     )
             );
         }
