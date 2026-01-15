@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface FeedCommentJpaRepository extends JpaRepository<FeedComment, Long> {
 
     @ElapsedTime
@@ -24,6 +26,8 @@ public interface FeedCommentJpaRepository extends JpaRepository<FeedComment, Lon
             + "AND c.isDeleted = false "
             + "AND u.role != 'BANNED'")
     Slice<FeedCommentResponse> findAllByFeedId(@Param("feedId") Long feedId, Pageable pageable);
+
+    Long countAllByFeed_Id(Long feedId);
 
     @Modifying
     @Query("UPDATE FeedComment c "
@@ -83,5 +87,8 @@ public interface FeedCommentJpaRepository extends JpaRepository<FeedComment, Lon
             WHERE c.feed.id = :feedId and c.isDeleted = false and u.role != 'BANNED' and c.id > :lastId
             """)
     Slice<FeedCommentResponse> findAllByFeedIdAfter(@Param("feedId")Long feedId, @Param("lastId")Long lastId, Pageable pageable);
+
+    @Query("SELECT c.feed.id, COALESCE(COUNT(c), 0) FROM FeedComment c WHERE c.feed.id IN :ids GROUP BY c.feed.id")
+    List<Object[]> countFeeds(@Param("ids") List<Long> ids);
 
 }

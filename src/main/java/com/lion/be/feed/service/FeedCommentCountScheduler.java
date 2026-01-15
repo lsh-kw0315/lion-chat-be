@@ -21,10 +21,57 @@ public class FeedCommentCountScheduler {
     private final RedisTemplate<String, Object> redisTemplate;
     private final FeedRepository feedRepository;
 
+
+/*
+        // 10초마다 실행
+    @Scheduled(fixedRate = 10000)
+    @Transactional
+    public void syncLikesToDb() {
+        long startTime = System.currentTimeMillis();
+        log.debug("피드 댓글 카운트 Batch update 시작");
+
+        List<Object> objFeedIds = redisTemplate.opsForSet().pop(RedisKey.DIRTY_COMMENT_COUNT_KEY, 100);
+
+        if (objFeedIds == null || objFeedIds.isEmpty()) {
+            log.debug("업데이트 할 피드 댓글 수가 존재하지 않음");
+            return;
+        }
+
+        for (Object feedIdObj : objFeedIds) {
+            String feedIdStr = (String) feedIdObj;
+            Long feedId = Long.parseLong(feedIdStr);
+
+            String CommentCountKey = RedisKey.COMMENT_COUNT_KEY + feedId;
+            Object CommentCountObj = redisTemplate.opsForValue().get(CommentCountKey);
+
+            if (CommentCountObj != null) {
+                long commentCount;
+                if (CommentCountObj instanceof Number) {
+                    // increment/decrement로 저장된 경우 (Number 타입)
+                    commentCount = ((Number) CommentCountObj).longValue();
+                } else {
+                    // set으로 저장된 경우 (String 타입)
+                    commentCount = Long.parseLong(CommentCountObj.toString());
+                }
+
+                feedRepository.updateCommentCount(feedId, commentCount);
+                log.debug("댓글 수 업데이트 commentId: {}, likeCount: {}", feedId, commentCount);
+            }
+        }
+
+        log.debug("피드 댓글 수 카운트 Batch update 끝: {}번", objFeedIds.size());
+        log.info("피드 댓글 카운트 Batch update 소요 시간: {} ms", System.currentTimeMillis() - startTime);
+    }
+    */
+
+
+
+
     // 10초마다 실행
     @Scheduled(fixedRate = 10000)
     @Transactional
     public void syncLikesToDb() {
+        long startTime = System.currentTimeMillis();
         log.debug("피드 댓글 카운트 Batch update 시작");
 
         // 1. Redis Set에서 처리할 대상 ID를 안전하게 가져옵니다.
@@ -88,6 +135,9 @@ public class FeedCommentCountScheduler {
             log.debug("유효한 업데이트 대상이 없습니다.");
         }
 
-        log.debug("피드 좋아요 카운트 Batch update 끝");
+        log.debug("피드 댓글 카운트 Batch update 끝");
+        log.info("피드 댓글 카운트 Batch update 소요 시간: {} ms", System.currentTimeMillis() - startTime);
     }
+
+
 }

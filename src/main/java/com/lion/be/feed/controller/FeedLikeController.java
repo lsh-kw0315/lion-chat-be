@@ -30,4 +30,18 @@ public class FeedLikeController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/api/feeds/{feedId}/like/rdb")
+    public ResponseEntity<Void> likeFeedRDB(@PathVariable Long feedId,
+                                         @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        feedLikeService.likeFeedRDB(feedId, userPrincipal.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/api/feeds/{feedId}/like/rdb")
+    public ResponseEntity<Void> unlikeFeedRDB(@PathVariable Long feedId,
+                                           @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        feedLikeService.unlikeFeedRDB(feedId, userPrincipal.getId());
+        return ResponseEntity.ok().build();
+    }
+
 }

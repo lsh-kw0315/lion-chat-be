@@ -9,6 +9,7 @@ import com.lion.be.feed.domain.dto.FeedWriteRequest;
 import com.lion.be.feed.service.FeedReadService;
 import com.lion.be.feed.service.FeedWriteService;
 import com.lion.be.global.aop.CheckRateLimitFeed;
+import com.lion.be.global.aop.ElapsedTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,30 @@ public class FeedController {
         return ResponseEntity.ok(feedReadService.getRecentFeedsFirst(size, currentUserId));
     }
 
+    @GetMapping("/api/feeds/old")
+    public ResponseEntity<Slice<FeedResponse>> showRecentFeedsOld(
+            @RequestParam(value = "lastId", required = false) Long lastId,
+            @RequestParam(value = "size", required = false) Integer size,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) { // ✨ 유저 정보 추가
+        Long currentUserId = (userPrincipal != null) ? userPrincipal.getId() : null;
+        if (lastId != null && lastId > 0) {
+            return ResponseEntity.ok(feedReadService.getRecentFeedsAfterOld(lastId, size, currentUserId));
+        }
+        return ResponseEntity.ok(feedReadService.getRecentFeedsFirstOld(size, currentUserId));
+    }
+
+    @GetMapping("/api/feeds/rdb")
+    public ResponseEntity<Slice<FeedResponse>> showRecentFeedsRDB(
+            @RequestParam(value = "lastId", required = false) Long lastId,
+            @RequestParam(value = "size", required = false) Integer size,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) { // ✨ 유저 정보 추가
+        Long currentUserId = (userPrincipal != null) ? userPrincipal.getId() : null;
+        if (lastId != null && lastId > 0) {
+            return ResponseEntity.ok(feedReadService.getRecentFeedsAfterRDB(lastId, size, currentUserId));
+        }
+        return ResponseEntity.ok(feedReadService.getRecentFeedsFirstRDB(size, currentUserId));
+    }
+
     @GetMapping("/api/feeds/hot")
     public ResponseEntity<Slice<FeedResponse>> showHotFeeds(
             @RequestParam(value = "lastLikeCount", required = false) Long lastLikeCount,
@@ -52,6 +77,32 @@ public class FeedController {
             return ResponseEntity.ok(feedReadService.getHotFeedsAfter(lastLikeCount, lastId, size, currentUserId));
         }
         return ResponseEntity.ok(feedReadService.getHotFeedsFirst(size, currentUserId));
+    }
+
+    @GetMapping("/api/feeds/hot/old")
+    public ResponseEntity<Slice<FeedResponse>> showHotFeedsOld(
+            @RequestParam(value = "lastLikeCount", required = false) Long lastLikeCount,
+            @RequestParam(value = "lastId", required = false) Long lastId,
+            @RequestParam(value = "size", required = false) Integer size,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) { // ✨ 유저 정보 추가
+        Long currentUserId = (userPrincipal != null) ? userPrincipal.getId() : null;
+        if (lastLikeCount != null && lastId != null && lastLikeCount >= 0 && lastId > 0) {
+            return ResponseEntity.ok(feedReadService.getHotFeedsAfterOld(lastLikeCount, lastId, size, currentUserId));
+        }
+        return ResponseEntity.ok(feedReadService.getHotFeedsFirstOld(size, currentUserId));
+    }
+
+    @GetMapping("/api/feeds/hot/rdb")
+    public ResponseEntity<Slice<FeedResponse>> showHotFeedsRDB(
+            @RequestParam(value = "lastLikeCount", required = false) Long lastLikeCount,
+            @RequestParam(value = "lastId", required = false) Long lastId,
+            @RequestParam(value = "size", required = false) Integer size,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) { // ✨ 유저 정보 추가
+        Long currentUserId = (userPrincipal != null) ? userPrincipal.getId() : null;
+        if (lastLikeCount != null && lastId != null && lastLikeCount >= 0 && lastId > 0) {
+            return ResponseEntity.ok(feedReadService.getHotFeedsAfterRDB(lastLikeCount, lastId, size, currentUserId));
+        }
+        return ResponseEntity.ok(feedReadService.getHotFeedsFirstRDB(size, currentUserId));
     }
 
     @DeleteMapping("/api/feeds/{feedId}")
@@ -100,6 +151,30 @@ public class FeedController {
             return ResponseEntity.ok(feedReadService.getMyFeedsAfter(currentUserId, lastId, size));
         }
         return ResponseEntity.ok(feedReadService.getMyFeedsFirst(currentUserId, size));
+    }
+
+    @GetMapping("/api/feeds/me/old")
+    public ResponseEntity<Slice<FeedResponse>> getMyFeedsOld(
+            @RequestParam(value = "lastId", required = false) Long lastId,
+            @RequestParam(value = "size", required = false) Integer size,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long currentUserId = userPrincipal.getId();
+        if (lastId != null && lastId > 0) {
+            return ResponseEntity.ok(feedReadService.getMyFeedsAfterOld(currentUserId, lastId, size));
+        }
+        return ResponseEntity.ok(feedReadService.getMyFeedsFirstOld(currentUserId, size));
+    }
+
+    @GetMapping("/api/feeds/me/rdb")
+    public ResponseEntity<Slice<FeedResponse>> getMyFeedsRDB(
+            @RequestParam(value = "lastId", required = false) Long lastId,
+            @RequestParam(value = "size", required = false) Integer size,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long currentUserId = userPrincipal.getId();
+        if (lastId != null && lastId > 0) {
+            return ResponseEntity.ok(feedReadService.getMyFeedsAfterRDB(currentUserId, lastId, size));
+        }
+        return ResponseEntity.ok(feedReadService.getMyFeedsFirstRDB(currentUserId, size));
     }
 
 }

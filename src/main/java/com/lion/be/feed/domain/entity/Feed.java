@@ -30,8 +30,11 @@ public class Feed extends BaseEntity {
 
     private Boolean isDeleted;
 
-    @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     List<FeedComment> feedComments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    List<FeedLike> feedLikes = new ArrayList<>();
 
     private long likeCount;
 
@@ -58,4 +61,8 @@ public class Feed extends BaseEntity {
     public void addComment(FeedComment comment) {
         feedComments.add(comment);
     }
+
+    public void addLike(FeedLike like) {feedLikes.remove(like);}
+
+    public void removeLike(FeedLike like) { feedLikes.remove(like);}
 }

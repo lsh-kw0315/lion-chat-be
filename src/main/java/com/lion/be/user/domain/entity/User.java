@@ -1,5 +1,6 @@
 package com.lion.be.user.domain.entity;
 
+import com.lion.be.feed.domain.entity.FeedLike;
 import com.lion.be.feed_comment.domain.entity.FeedComment;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +74,9 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Feed> userFeeds = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<FeedLike> userFeedLikes = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
@@ -123,6 +127,10 @@ public class User extends BaseEntity {
     }
 
     public void addUserFeed(Feed feed){ userFeeds.add(feed); }
+
+    public void addUserFeedLike(FeedLike feedLike){userFeedLikes.add(feedLike);}
+
+    public void removeUserFeedLike(FeedLike feedLike){userFeedLikes.remove(feedLike);}
 
     public void completeOnboarding(OnboardingData data) {
         validateOnboardingPreconditions();

@@ -5,6 +5,8 @@ import com.lion.be.feed_comment.domain.dto.FeedCommentSaveResponse;
 import com.lion.be.feed_comment.domain.entity.FeedComment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -29,4 +31,8 @@ public interface FeedCommentRepository {
     Slice<FeedCommentResponse> fetchAllByFeedIdFirst(Long feedId, Pageable pageable);
 
     Slice<FeedCommentResponse> fetchAllByFeedIdAfter(Long feedId, Long lastId, Pageable pageable);
+
+    Long countAllByFeed_id(Long feedId);
+
+    List<Object[]> countFeeds(List<Long> ids);
 }

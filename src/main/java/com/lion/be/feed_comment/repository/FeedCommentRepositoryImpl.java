@@ -5,6 +5,7 @@ import com.lion.be.feed_comment.domain.dto.FeedCommentSaveResponse;
 import com.lion.be.feed_comment.domain.entity.FeedComment;
 import com.lion.be.feed_comment.domain.entity.QFeedComment;
 import com.lion.be.feed_comment.repository.persistence.jpa.FeedCommentJpaRepository;
+import com.lion.be.global.aop.ElapsedTime;
 import com.lion.be.image.domain.entity.QImage;
 import com.lion.be.user.domain.Role;
 import com.lion.be.user.domain.entity.QUser;
@@ -69,6 +70,7 @@ public class FeedCommentRepositoryImpl implements FeedCommentRepository {
     }
 
     @Override
+    
     public Slice<FeedCommentResponse> fetchAllByFeedIdFirst(Long feedId, Pageable pageable) {
         int size = pageable.getPageSize();
         int limit = size + 1;
@@ -89,6 +91,7 @@ public class FeedCommentRepositoryImpl implements FeedCommentRepository {
     }
 
     @Override
+    
     public Slice<FeedCommentResponse> fetchAllByFeedIdAfter(Long feedId, Long lastId, Pageable pageable) {
         int size = pageable.getPageSize();
         int limit = size + 1;
@@ -165,5 +168,15 @@ public class FeedCommentRepositoryImpl implements FeedCommentRepository {
                 .set(feedComment.likeCount, likeCountCase.otherwise(feedComment.likeCount)) // 기존 좋아요 수를 유지
                 .where(feedComment.id.in(commentIds))
                 .execute();
+    }
+
+    @Override
+    public Long countAllByFeed_id(Long feedId) {
+        return feedCommentJpaRepository.countAllByFeed_Id(feedId);
+    }
+
+    @Override
+    public List<Object[]> countFeeds(List<Long> ids) {
+        return feedCommentJpaRepository.countFeeds(ids);
     }
 }

@@ -3,7 +3,11 @@ package com.lion.be.feed.service;
 import com.lion.be.feed.domain.dto.FeedDto;
 import com.lion.be.feed.domain.dto.FeedResponse;
 import com.lion.be.feed.domain.entity.Feed;
+import com.lion.be.feed.domain.entity.FeedLike;
+import com.lion.be.feed.repository.FeedLikeRepository;
 import com.lion.be.feed.repository.FeedRepository;
+import com.lion.be.feed_comment.repository.FeedCommentRepository;
+import com.lion.be.global.aop.ElapsedTime;
 import com.lion.be.global.exception.CustomException;
 import com.lion.be.global.exception.ErrorCode;
 import com.lion.be.global.util.RedisKey;
@@ -25,6 +29,8 @@ import java.util.stream.Collectors;
 public class FeedReadService {
 
     private final FeedRepository feedRepository;
+    private final FeedLikeRepository feedLikeRepository;
+    private final FeedCommentRepository feedCommentRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final int DEFAULT_PAGE_SIZE = 30;
@@ -49,6 +55,8 @@ public class FeedReadService {
         );
     }
 
+    //===========================
+
     public Slice<FeedResponse> getRecentFeedsFirst(Integer size, Long currentUserId) {
         Slice<FeedResponse> feedResponses = feedRepository.fetchRecentFeedsFirst(getRecentPageable(size));
         return enrichFeedsWithRedisData(feedResponses, currentUserId);
@@ -58,6 +66,7 @@ public class FeedReadService {
         Slice<FeedResponse> feedResponses = feedRepository.fetchRecentFeedsAfter(lastId, getRecentPageable(size));
         return enrichFeedsWithRedisData(feedResponses, currentUserId);
     }
+
 
     public Slice<FeedResponse> getHotFeedsFirst(Integer size, Long currentUserId) {
         Slice<FeedResponse> feedResponses = feedRepository.fetchHotFeedsFirst(getHotPageable(size));
@@ -79,6 +88,70 @@ public class FeedReadService {
         return enrichFeedsWithRedisData(feedResponses, currentUserId);
     }
 
+    //===================
+
+
+    public Slice<FeedResponse> getRecentFeedsFirstRDB(Integer size, Long currentUserId) {
+        return enrichFeedsWithRDBData(feedRepository.fetchRecentFeedsFirst(getRecentPageable(size)), currentUserId);
+    }
+
+    public Slice<FeedResponse> getRecentFeedsAfterRDB(Long lastId, Integer size, Long currentUserId) {
+        return enrichFeedsWithRDBData(feedRepository.fetchRecentFeedsAfter(lastId, getRecentPageable(size)),currentUserId);
+    }
+
+
+    public Slice<FeedResponse> getHotFeedsFirstRDB(Integer size, Long currentUserId) {
+        return enrichFeedsWithRDBData(feedRepository.fetchHotFeedsFirst(getHotPageable(size)), currentUserId);
+    }
+
+    public Slice<FeedResponse> getHotFeedsAfterRDB(Long lastLikeCount, Long lastId, Integer size, Long currentUserId) {
+        return enrichFeedsWithRDBData(feedRepository.fetchHotFeedsAfter(lastLikeCount, lastId, getHotPageable(size)), currentUserId);
+    }
+
+    public Slice<FeedResponse> getMyFeedsAfterRDB(Long currentUserId, Long lastId, Integer size) {
+        return enrichFeedsWithRDBData(feedRepository.fetchFeedsByUserIdAfter(currentUserId, lastId, getRecentPageable(size)), currentUserId);
+    }
+
+    public Slice<FeedResponse> getMyFeedsFirstRDB(Long currentUserId, Integer size) {
+        return enrichFeedsWithRDBData(feedRepository.fetchFeedsByUserIdFirst(currentUserId, getRecentPageable(size)), currentUserId);
+    }
+
+    //=======================
+
+    public Slice<FeedResponse> getRecentFeedsFirstOld(Integer size, Long currentUserId) {
+        Slice<FeedResponse> feedResponses = feedRepository.fetchRecentFeedsFirst(getRecentPageable(size));
+        return enrichFeedsWithRedisDataOld(feedResponses, currentUserId);
+    }
+
+
+    public Slice<FeedResponse> getRecentFeedsAfterOld(Long lastId, Integer size, Long currentUserId) {
+        Slice<FeedResponse> feedResponses = feedRepository.fetchRecentFeedsAfter(lastId, getRecentPageable(size));
+        return enrichFeedsWithRedisDataOld(feedResponses, currentUserId);
+    }
+
+
+    public Slice<FeedResponse> getHotFeedsFirstOld(Integer size, Long currentUserId) {
+        Slice<FeedResponse> feedResponses = feedRepository.fetchHotFeedsFirst(getHotPageable(size));
+        return enrichFeedsWithRedisDataOld(feedResponses, currentUserId);
+    }
+
+
+    public Slice<FeedResponse> getHotFeedsAfterOld(Long lastLikeCount, Long lastId, Integer size, Long currentUserId) {
+        Slice<FeedResponse> feedResponses = feedRepository.fetchHotFeedsAfter(lastLikeCount, lastId, getHotPageable(size));
+        return enrichFeedsWithRedisDataOld(feedResponses, currentUserId);
+    }
+
+
+    public Slice<FeedResponse> getMyFeedsAfterOld(Long currentUserId, Long lastId, Integer size) {
+        Slice<FeedResponse> feedResponses = feedRepository.fetchFeedsByUserIdAfter(currentUserId, lastId, getRecentPageable(size));
+        return enrichFeedsWithRedisDataOld(feedResponses, currentUserId);
+    }
+
+
+    public Slice<FeedResponse> getMyFeedsFirstOld(Long currentUserId, Integer size) {
+        Slice<FeedResponse> feedResponses = feedRepository.fetchFeedsByUserIdFirst(currentUserId, getRecentPageable(size));
+        return enrichFeedsWithRedisDataOld(feedResponses, currentUserId);
+    }
     private Slice<FeedResponse> enrichFeedsWithRedisData(Slice<FeedResponse> feeds, Long currentUserId) {
 
         List<Long> feedIds = feeds.getContent().stream()
@@ -159,6 +232,44 @@ public class FeedReadService {
         return feeds;
     }
 
+    private Slice<FeedResponse> enrichFeedsWithRDBData(Slice<FeedResponse> feeds, Long currentUserId) {
+
+        List<Long> feedIds = feeds.getContent().stream()
+                .map(feedResponse -> feedResponse.getFeed().getId())
+                .toList();
+
+        List<Object[]> countLikes = feedLikeRepository.countFeeds(feedIds);
+        List<Object[]> countComments = feedCommentRepository.countFeeds(feedIds);
+        List<FeedLike> userLiked = feedLikeRepository.findAllByFeed_IdInAndUser_Id(feedIds, currentUserId);
+        Map<Long, Boolean> likedMap = new HashMap<>();
+        Map<Long, Long> feedLikeMap = new HashMap<>();
+        Map<Long, Long> feedCommentMap = new HashMap<>();
+
+        for(FeedLike feedLike : userLiked){
+            likedMap.put(feedLike.getFeed().getId(), true);
+        }
+
+        for(Object[] row : countLikes){
+            feedLikeMap.put((Long)row[0], (Long)row[1]);
+        }
+
+        for(Object[] row: countComments){
+            feedCommentMap.put((Long)row[0], (Long)row[1]);
+        }
+
+        for(int i=0; i<feeds.getContent().size(); i++){
+            Long feedId = feeds.getContent().get(i).getFeed().getId();
+            feeds.getContent().get(i).getFeed().setCommentCount(feedCommentMap.getOrDefault(feedId, 0L));
+            feeds.getContent().get(i).getFeed().setLikeCount(feedLikeMap.getOrDefault(feedId, 0L));
+            if(likedMap.containsKey(feedId)){
+                feeds.getContent().get(i).getFeed().like();
+            }
+        }
+
+        return feeds;
+
+    }
+
     private long getAndCacheLikeCount(Long feedId, long dbLikeCount) {
         String likeCountKey = RedisKey.FEED_LIKE_COUNT_KEY_PREFIX + feedId;
         Object likeCountObj = redisTemplate.opsForValue().get(likeCountKey);
@@ -184,6 +295,62 @@ public class FeedReadService {
     }
 
     private boolean isLikedByCurrentUser(Long feedId, Long currentUserId) {
+        if (currentUserId == null) {
+            return false;
+        }
+        return Boolean.TRUE.equals(
+                redisTemplate.opsForSet().isMember(RedisKey.FEED_LIKED_USERS_KEY_PREFIX + feedId, String.valueOf(currentUserId)));
+    }
+
+
+    private Slice<FeedResponse> enrichFeedsWithRedisDataOld(Slice<FeedResponse> feeds, Long currentUserId) {
+        feeds.getContent().forEach(feedResponse -> {
+            FeedDto feedDto = feedResponse.getFeed();
+            long feedId = feedDto.getId();
+
+            // ✨ 수정: 캐시 워밍업 로직을 포함한 메서드 호출
+            long finalLikeCount = getAndCacheLikeCountOld(feedId, feedDto.getLikeCount());
+            feedDto.setLikeCount(finalLikeCount);
+
+            long finalCommentCount = getAndCacheCommentCountOld(feedId, feedDto.getCommentCount());
+            feedDto.setCommentCount(finalCommentCount);
+
+            if (currentUserId != null) {
+                if(isLikedByCurrentUserOld(feedId, currentUserId)){
+                    feedDto.like();
+                } else {
+                    feedDto.unlike();
+                }
+            }
+        });
+        return feeds;
+    }
+
+    private long getAndCacheLikeCountOld(Long feedId, long dbLikeCount) {
+        String likeCountKey = RedisKey.FEED_LIKE_COUNT_KEY_PREFIX + feedId;
+        Object likeCountObj = redisTemplate.opsForValue().get(likeCountKey);
+
+        if (likeCountObj != null) {
+            return ((Number) likeCountObj).longValue();
+        } else {
+            redisTemplate.opsForValue().set(likeCountKey, dbLikeCount);
+            return dbLikeCount;
+        }
+    }
+
+    private long getAndCacheCommentCountOld(Long feedId, long dbCommentCount) {
+        String commentCountKey = RedisKey.COMMENT_COUNT_KEY + feedId;
+        Object commentCountObj = redisTemplate.opsForValue().get(commentCountKey);
+
+        if (commentCountObj != null) {
+            return ((Number) commentCountObj).longValue();
+        } else {
+            redisTemplate.opsForValue().set(commentCountKey, dbCommentCount);
+            return dbCommentCount;
+        }
+    }
+
+    private boolean isLikedByCurrentUserOld(Long feedId, Long currentUserId) {
         if (currentUserId == null) {
             return false;
         }

@@ -21,9 +21,49 @@ public class FeedLikeScheduler {
     private final RedisTemplate<String, Object> redisTemplate;
     private final FeedRepository feedRepository;
 
+
+    /*
+
+        @Scheduled(fixedRate = 10000)
+    @Transactional
+    public void syncLikesToDb() {
+        log.debug("피드 좋아요 카운트 Batch update 시작");
+
+        List<Object> objFeedIds = redisTemplate.opsForSet().pop(RedisKey.DIRTY_FEED_LIKE_KEY, 100);
+
+        if (objFeedIds == null || objFeedIds.isEmpty()) {
+            log.debug("업데이트 할 피드 좋아요가 존재하지 않음");
+            return;
+        }
+
+        for (Object feedIdObj : objFeedIds) {
+            String feedIdStr = (String) feedIdObj;
+            Long feedId = Long.parseLong(feedIdStr);
+            String likeCountKey = RedisKey.FEED_LIKE_COUNT_KEY_PREFIX + feedId;
+            Object likeCountObj = redisTemplate.opsForValue().get(likeCountKey);
+
+            if (likeCountObj != null) {
+                long likeCount;
+                if (likeCountObj instanceof Number) {
+                    likeCount = ((Number) likeCountObj).longValue();
+                } else {
+                    likeCount = Long.parseLong(likeCountObj.toString());
+                }
+                feedRepository.updateLikeCount(feedId, likeCount);
+                log.debug("업데이트 feedId: {}, likeCount: {}", feedId, likeCount);
+            }
+        }
+
+        log.debug("피드 좋아요 카운트 Batch update 끝: {}번", objFeedIds.size());
+    }
+
+    */
+
     @Scheduled(fixedRate = 10000)
     @Transactional
     public void syncLikesToDb() {
+        long startTime = System.currentTimeMillis();
+
         log.debug("피드 좋아요 카운트 Batch update 시작");
 
         // 1. Redis Set에서 처리할 대상 ID를 안전하게 가져옵니다.
@@ -88,6 +128,7 @@ public class FeedLikeScheduler {
         }
 
         log.debug("피드 좋아요 카운트 Batch update 끝");
+        log.info("피드 좋아요 카운트 Batch update 소요 시간: {} ms", System.currentTimeMillis() - startTime);
     }
 
 }

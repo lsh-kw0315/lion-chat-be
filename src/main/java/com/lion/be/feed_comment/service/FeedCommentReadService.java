@@ -4,6 +4,7 @@ import com.lion.be.feed_comment.domain.dto.FeedCommentResponse;
 import com.lion.be.feed_comment.repository.FeedCommentRepository;
 
 
+import com.lion.be.global.aop.ElapsedTime;
 import com.lion.be.global.exception.CustomException;
 import com.lion.be.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class FeedCommentReadService {
     private static final String LIKE_COUNT_KEY_PREFIX = "comment:like_count:";
     private static final String LIKED_USERS_KEY_PREFIX = "comment:liked_users:";
 
+    @ElapsedTime
     public Slice<FeedCommentResponse> fetchAll(Long feedId, Long lastId, int size, Long userId) {
         Pageable pageable = PageRequest.of(0, size > 0 && size <=30 ? size:30);
 

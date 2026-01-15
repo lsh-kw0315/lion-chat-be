@@ -1,6 +1,7 @@
 package com.lion.be.global.util;
 
 import com.lion.be.feed.domain.entity.Feed;
+import com.lion.be.feed.domain.entity.FeedLike;
 import com.lion.be.feed.repository.FeedRepository;
 import com.lion.be.feed.service.FeedLikeService;
 import com.lion.be.feed_comment.domain.dto.FeedCommentSaveRequest;
@@ -39,24 +40,24 @@ public class FakeData implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-//        List<User> existingUsers = userJpaRepository.findAll();
-//        int existingUserCount = existingUsers.size();
-//
-//        if(existingUserCount < USER_COUNT) {
-//            for (int i = 0; i < USER_COUNT -  existingUserCount; i++) {
-//                existingUsers.add(userJpaRepository.save(
-//                        new User(
-//                                "user" + (i + 1),
-//                                "user" + (i + 1) + "@example.com",
-//                                "https://www",
-//                                Role.USER
-//                        ))
-//                );
-//            }
-//        }
-//
-//        List<Feed> existingFeeds = feedRepository.findAll();
-//
+        List<User> existingUsers = userJpaRepository.findAll();
+        int existingUserCount = existingUsers.size();
+
+        if(existingUserCount < USER_COUNT) {
+            for (int i = 0; i < USER_COUNT -  existingUserCount; i++) {
+                existingUsers.add(userJpaRepository.save(
+                        new User(
+                                "user" + (i + 1),
+                                "user" + (i + 1) + "@example.com",
+                                "https://www",
+                                Role.USER
+                        ))
+                );
+            }
+        }
+
+        List<Feed> existingFeeds = feedRepository.findAll();
+
 //        int existingFeedCount = existingFeeds.size();
 //        if(existingFeedCount < FEED_COUNT) {
 //            for (int i = 0; i < FEED_COUNT - existingFeedCount; i++) {
@@ -74,14 +75,13 @@ public class FakeData implements CommandLineRunner {
 
 //        Random random = new Random();
 //        random.setSeed(System.currentTimeMillis());
-//        int minimal = 100;
-//        for(int i=minimal; i<minimal+100; i++){
+//        for (int i=existingFeeds.size()-1; i>=existingFeeds.size()-201; i--) {
 //            Feed feed = existingFeeds.get(i);
-//            //if(feed.getLikeCount() > 0 || feed.getIsDeleted()) continue;
-//            int rand = (random.nextInt(existingUserCount) % 10)+1;
-//            for(int j=0; j<rand; j++){
+//            if(feed.getLikeCount() > 0 || feed.getIsDeleted()) continue;
+//            int rand = (random.nextInt(existingUserCount) % 5) + 1;
+//            for (int j = 0; j < rand; j++) {
 //                User user = existingUsers.get(j);
-//                feedLikeService.unlikeFeed(feed.getId(), user.getId());
+//                feedLikeService.likeFeedRDB(feed.getId(), user.getId());
 //            }
 //        }
 
@@ -91,8 +91,8 @@ public class FakeData implements CommandLineRunner {
 //        for(int i=0; i<100; i++){
 //            Feed feed = existingFeeds.get(i);
 //            if(feed.getIsDeleted()) continue;
-//            int rand = (random.nextInt(existingUserCount) % 10) + 1;
-//            for(int j=0; j<rand; j++){
+////            int rand = (random.nextInt(existingUserCount) % 10) + 1;
+//            for(int j=0; j<10; j++){
 //                User user = existingUsers.get(j);
 //                feedCommentWriteService.save(
 //                        feed.getId(),

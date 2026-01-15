@@ -1,7 +1,9 @@
 package com.lion.be.feed.repository;
 
 import com.lion.be.feed.domain.dto.FeedResponse;
+import com.lion.be.feed.domain.entity.FeedLike;
 import com.lion.be.feed.domain.entity.QFeed;
+import com.lion.be.global.aop.ElapsedTime;
 import com.lion.be.image.domain.entity.QImage;
 import com.lion.be.user.domain.Role;
 import com.lion.be.user.domain.entity.QUser;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.SliceImpl;
 
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -86,6 +89,7 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
                 .execute();
     }
 
+    
     @Override
     public Slice<FeedResponse> fetchRecentFeedsFirst(Pageable pageable) {
         int size = pageable.getPageSize();
@@ -107,7 +111,9 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
         return getFeedResponses(pageable, size, user, feed, userPhoto, image, targetFeedIds);
     }
 
+
     @Override
+    
     public Slice<FeedResponse> fetchRecentFeedsAfter(Long lastId, Pageable pageable) {
         int size = pageable.getPageSize();
         int limit = size + 1;
@@ -130,6 +136,7 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
     }
 
     @Override
+    
     public Slice<FeedResponse> fetchHotFeedsFirst(Pageable pageable) {
         int size = pageable.getPageSize();
         int limit = size + 1;
@@ -152,6 +159,7 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
 
 
     @Override
+    
     public Slice<FeedResponse> fetchHotFeedsAfter(Long lastLikeCount, Long lastId, Pageable pageable) {
         int size = pageable.getPageSize();
         int limit = size + 1;
@@ -175,6 +183,7 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
 
 
     @Override
+    
     public Slice<FeedResponse> fetchFeedsByUserIdFirst(Long currentUserId, Pageable pageable) {
         int size = pageable.getPageSize();
         int limit = size + 1;
@@ -196,6 +205,7 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
     }
 
     @Override
+    
     public Slice<FeedResponse> fetchFeedsByUserIdAfter(Long currentUserId, Long lastId, Pageable pageable) {
         int size = pageable.getPageSize();
         int limit = size + 1;
@@ -268,6 +278,7 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
                         .orderBy(feed.id.desc())
                         .fetch();
 
+
         boolean hasNext = false;
         if(contents.size() > size){
             hasNext = true;
@@ -276,5 +287,6 @@ public class FeedRepositoryImpl implements FeedRepositoryCustom {
 
         return new SliceImpl<>(contents, pageable, hasNext);
     }
+
 
 }
